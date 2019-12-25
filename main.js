@@ -14,6 +14,8 @@ const puppeteer = require('puppeteer');
     characters = [...characters, ...await getCharactersFromBiographyPage(page)]
   }
 
+  generateInsertToCharacters(characters)
+
   browser.close()
 })()
 
@@ -40,4 +42,12 @@ async function getAllBiographyLinks(page) {
     [...document.getElementsByTagName(`center`)[1].getElementsByTagName(`a`)]
       .map(biographyLink => biographyLink.href)
   );
+}
+
+function generateInsertToCharacters(characters) {
+  const fs = require('fs');
+
+  for (let character of characters) {
+    fs.appendFileSync('inserts.txt', `INSERT INTO characters (image, name) VALUES ('${character.image}', '${character.name}'); \n`);
+  }
 }
