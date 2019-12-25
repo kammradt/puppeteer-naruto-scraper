@@ -4,34 +4,24 @@ const puppeteer = require('puppeteer');
 
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
-  await page.goto('http://www.leafninja.com/biographies.php');
+  await page.goto('http://www.leafninja.com/biographies.php', { waitUntil: 'domcontentloaded' });
 
   let links = await getAllBiographyLinks(page)
 
   let characters = []
-  for (let i = 0; i < links.length; i++) {
-    await page.goto(links[i].url);
+  for (let link of links) {
+    await page.goto(link)
     characters = [...characters, ...await getCharactersFromBiographyPage(page)]
   }
-  
+
   browser.close()
 })()
 
 async function getCharactersFromBiographyPage(page) {
   return await page.evaluate(() => {
-    let names = Array.from(document.querySelectorAll('[bgcolor="8AB275"]'))
-    let images = Array.from(document.querySelectorAll('[width="15%"]'))
-      .filter(tableContainer => {
-        let containerElements = Array.from(tableContainer.children)
-        if (containerElements.length > 0) {
-          let possibleImageTag = containerElements[0]
-          return possibleImageTag.nodeName.toLowerCase() === "img"
-        }
-      })
-      .map(rawIimage => {
-        let imageTag = Array.from(rawIimage.querySelectorAll('[border="1"]'))[0]
-        return imageTag.src
-      })
+    let names = [...document.querySelectorAll('[bgcolor="8AB275"]')]
+    let images = [...document.querySelectorAll('[width="15%"] > img[border="1"]')]
+      .map(imageTag => imageTag.src)
 
     return names
       .filter(validName => validName)
@@ -46,10 +36,8 @@ async function getCharactersFromBiographyPage(page) {
 }
 
 async function getAllBiographyLinks(page) {
-  return await page.evaluate(() => {
-    let tableWithLinks = Array.from(document.getElementsByTagName(`center`)[1].getElementsByTagName(`a`))
-    return tableWithLinks.map(biographyLink => ({
-      url: biographyLink.href
-    }))
-  });
+  return await page.evaluate(() =>
+    [...document.getElementsByTagName(`center`)[1].getElementsByTagName(`a`)]
+      .map(biographyLink => biographyLink.href)
+  );
 }
