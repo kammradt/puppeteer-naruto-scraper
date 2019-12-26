@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const fs = require('fs');
 
 (async () => {
 
@@ -15,6 +16,7 @@ const puppeteer = require('puppeteer');
   }
 
   generateInsertToCharacters(characters)
+  saveAsJsonFile(characters)
 
   browser.close()
 })()
@@ -23,6 +25,7 @@ async function getCharactersFromBiographyPage(page) {
   return await page.evaluate(() => {
     let names = [...document.querySelectorAll('[bgcolor="8AB275"]')]
     let images = [...document.querySelectorAll('[width="15%"] > img[border="1"]')]
+      .filter(validImage => validImage)
       .map(imageTag => imageTag.src)
 
     return names
@@ -30,8 +33,10 @@ async function getCharactersFromBiographyPage(page) {
       .map((name, i) => ({
         image: images[i],
         name: name.innerText
+          .trim()
           .replace('[Click for Full Biography (Spoilers)]', '')
           .replace('�', '')
+          .replace('(Unnamed)', '')
       })
       )
   })
@@ -45,9 +50,14 @@ async function getAllBiographyLinks(page) {
 }
 
 function generateInsertToCharacters(characters) {
-  const fs = require('fs');
-
   for (let character of characters) {
-    fs.appendFileSync('inserts.txt', `INSERT INTO characters (image, name) VALUES ('${character.image}', '${character.name}'); \n`);
+    fs.appendFileSync('inserts.txt', `INSERT INTO naruto_character (image_url, name) VALUES ("${character.image}", "${character.name}"); \n`);
   }
+}
+
+function saveAsJsonFile(characters) {
+  fs.appendFileSync('json.json', JSON.stringify({
+    data: characters
+  }));
+
 }
