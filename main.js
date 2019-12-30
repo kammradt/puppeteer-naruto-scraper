@@ -12,7 +12,7 @@ const fs = require('fs');
   let characters = []
   for (let link of links) {
     await page.goto(link)
-    characters = [...characters, ...await getCharactersFromBiographyPage(page)]
+    characters.push(...await getCharactersFromBiographyPage(page))
   }
 
   generateInsertToCharacters(characters)
