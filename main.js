@@ -59,5 +59,4 @@ function saveAsJsonFile(characters) {
   fs.appendFileSync('json.json', JSON.stringify({
     data: characters
   }));
-
 }
